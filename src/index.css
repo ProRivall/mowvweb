@@ -117,3 +117,48 @@ button {
     @apply bg-background text-foreground;
   }
 }
+
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+section,
+.section {
+  min-height: 100dvh;
+  padding-inline: 5vw;
+}
+
+h1 {
+  font-size: clamp(2rem, 7vw, 4.5rem);
+  line-height: 1.1;
+}
+
+.subtext,
+p {
+  font-size: clamp(1rem, 3.2vw, 1.6rem);
+}
+
+.button--motion,
+.motion-button {
+  margin-bottom: max(16px, var(--safe-bottom));
+}
+
+.scrollable,
+.gallery,
+.streetstories {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}

@@ -1,0 +1,178 @@
+# codex_instructions.txt
+# Context: React + Vite + Three.js + GSAP
+# Obiectiv: Repară mobile UX/performance fără a modifica animațiile/efectele existente.
+# Reguli: NU șterge sau redenumi timeline-uri GSAP, obiecte din scenă 3D sau componente. Doar layout, CSS, event handling, performanță.
+
+===============================================================================
+1) Creează hook pentru smooth scroll + sincronizare GSAP
+===============================================================================
+Create file: src/hooks/useSmoothScroll.js
+WITH EXACT CONTENT:
+----------------------------------------------------------------
+import { useEffect } from "react";
+import Lenis from "@studio-freight/lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+export default function useSmoothScroll() {
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+
+    const lenis = new Lenis({
+      smooth: true,
+      lerp: 0.1,
+      gestureDirection: "vertical",
+      smoothTouch: true,
+      touchMultiplier: 1.5,
+    });
+
+    const raf = (time) => {
+      lenis.raf(time);
+      ScrollTrigger.update();
+      requestAnimationFrame(raf);
+    };
+    requestAnimationFrame(raf);
+
+    lenis.on("scroll", ScrollTrigger.update);
+
+    ScrollTrigger.defaults({
+      fastScrollEnd: true,
+      preventOverlaps: true,
+      anticipatePin: 1,
+    });
+    ScrollTrigger.config({
+      autoRefreshEvents:
+        "visibilitychange,DOMContentLoaded,load,resize,orientationchange",
+    });
+
+    const onResize = () => ScrollTrigger.refresh();
+    window.addEventListener("orientationchange", onResize);
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      window.removeEventListener("orientationchange", onResize);
+      window.removeEventListener("resize", onResize);
+      lenis.destroy();
+      // Kill triggers only (NU timelines)
+      gsap.utils.toArray(ScrollTrigger.getAll()).forEach(t => t.kill(false));
+    };
+  }, []);
+}
+----------------------------------------------------------------
+
+Also add dependency (developer will run): npm i @studio-freight/lenis
+
+
+===============================================================================
+2) Aplică hook-ul în componenta rădăcină
+===============================================================================
+Edit file: src/App.jsx  (sau componenta rădăcină existentă)
+- Add at top: import useSmoothScroll from "./hooks/useSmoothScroll";
+- Inside the root component, call: useSmoothScroll();
+Return ONLY the minimal diff needed.
+
+===============================================================================
+3) Optimizează Canvas pentru performanță & touch
+===============================================================================
+Find the Three Fiber <Canvas> component. Update props EXACTLY:
+- add: gl={{ antialias: true, powerPreference: "high-performance" }}
+- add: dpr={[1, 1.5]}
+- add: frameloop="demand"
+- ensure style includes: { touchAction: "none" } on the Canvas element
+- in any heavy useFrame loops, ensure we use invalidate() on state changes rather than continuous re-rendering.
+
+Edit ONLY the Canvas element props. Do not change scene content.
+
+===============================================================================
+4) Navbar: fix stacking, vizibilitate și clicabilitate
+===============================================================================
+Ensure Navbar is rendered OUTSIDE <Canvas>. If it's overlayed by Canvas, move it above Canvas in the DOM or apply higher stacking.
+Append to the global stylesheet (see next step) CSS rules for nav.
+
+===============================================================================
+5) CSS global: dvh, clamp, safe areas, scroll containers
+===============================================================================
+Edit or create a global stylesheet (e.g., src/styles/mobile.css or src/index.css). Append EXACTLY:
+----------------------------------------------------------------
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+nav {
+  position: fixed;
+  top: 0; left: 0; width: 100%;
+  z-index: 1000;
+  padding: 12px 20px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+}
+
+section, .section {
+  min-height: 100dvh;
+  padding-inline: 5vw;
+}
+
+h1 {
+  font-size: clamp(2rem, 7vw, 4.5rem);
+  line-height: 1.1;
+}
+
+.subtext, p {
+  font-size: clamp(1rem, 3.2vw, 1.6rem);
+}
+
+.button--motion, .motion-button {
+  margin-bottom: max(16px, var(--safe-bottom));
+}
+
+.scrollable, .gallery, .streetstories {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+----------------------------------------------------------------
+
+If using Tailwind, produce equivalent utility classes at usage sites; otherwise, leave the above CSS appended globally.
+
+===============================================================================
+6) GSAP ScrollTrigger: refresh & invalidateOnRefresh
+===============================================================================
+Locate ALL places where ScrollTrigger.create(...) is used.
+- Ensure each trigger includes: invalidateOnRefresh: true
+- Ensure a global call exists on mount: setTimeout(() => ScrollTrigger.refresh(), 0);
+- Ensure window resize/orientationchange already handled by the hook in step 1; do not duplicate.
+
+Example patch for a trigger (edit in place, keep existing options):
+----------------------------------------------------------------
+ScrollTrigger.create({
+  ...existingOptions,
+  invalidateOnRefresh: true,
+});
+----------------------------------------------------------------
+
+===============================================================================
+7) Touch routing: nu bloca swipe în secțiuni
+===============================================================================
+- Ensure Canvas pointer handlers (onPointerDown / onPointerMove) call e.stopPropagation() only when strictly necessary.
+- Ensure sections that must scroll have touch-action: pan-y (already added in CSS).
+
+===============================================================================
+8) Viewport meta & head
+===============================================================================
+Ensure index.html contains:
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+Do not remove other head tags.
+
+===============================================================================
+DELIVERABLE
+===============================================================================
+Return ONLY:
+- The new file: src/hooks/useSmoothScroll.js
+- The minimal diff for src/App.jsx (import + hook call)
+- The minimal diff for the Canvas props
+- The appended CSS block to the global stylesheet
+- The minimal diffs adding invalidateOnRefresh:true to ScrollTriggers
+
+Do NOT alter or remove existing animations, timelines, 3D objects, or visual effects.
+Build must pass: npm run dev && npm run build
