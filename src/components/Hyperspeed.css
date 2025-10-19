@@ -1,0 +1,15 @@
+.hyperspeed-wrapper {
+  position: absolute;
+  top: calc(-1 * var(--hyperspeed-bleed, 0px));
+  bottom: calc(-1 * var(--hyperspeed-bleed, 0px));
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.hyperspeed-wrapper canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+

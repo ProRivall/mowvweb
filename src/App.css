@@ -1,0 +1,86 @@
+.nav-link {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 2px;
+  background: #AA0000;
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::before {
+  width: 4px;
+}
+
+.nav-link:hover {
+  transform: translateX(8px);
+  color: #FF3B3B;
+}
+
+.glitch-active {
+  animation: glitchAnim 0.3s ease-in-out;
+}
+
+.marquee-track {
+  will-change: transform;
+}
+
+@keyframes glitchAnim {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+@keyframes scroll-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes morphWord {
+  0%,
+  5%,
+  100% {
+    filter: blur(0px);
+    opacity: 1;
+  }
+  20%,
+  80% {
+    filter: blur(1em);
+    opacity: 0;
+  }
+}
+
+@keyframes footerGlow {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}

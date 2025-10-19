@@ -1,0 +1,158 @@
+.gallery-title {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.55));
+}
+
+.gallery-title__text {
+  position: relative;
+  display: inline-block;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 900;
+  font-size: clamp(3.2rem, 8vw, 6.5rem);
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: var(--gallery-title-color, #fff);
+  text-transform: uppercase;
+  padding: 0 clamp(0.35em, 1.5vw, 0.6em);
+  transition: filter 0.6s ease;
+}
+
+.gallery-title__text::before,
+.gallery-title__text::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.gallery-title__text::before {
+  color: var(--gallery-title-accent, #ff4d64);
+  transform: translate3d(0, 0, 0);
+  mix-blend-mode: screen;
+  filter: blur(0.5px);
+}
+
+.gallery-title__text::after {
+  color: var(--gallery-title-accent-soft, #aa0000);
+  transform: translate3d(0, 0, 0);
+  mix-blend-mode: screen;
+  opacity: 0.4;
+}
+
+.gallery-title__text.is-animating::before,
+.gallery-title__text.is-animating::after {
+  animation-duration: 2.4s;
+  animation-iteration-count: infinite;
+  animation-timing-function: steps(2, end);
+}
+
+.gallery-title__text.is-animating::before {
+  animation-name: gallery-title-glitch-one;
+}
+
+.gallery-title__text.is-animating::after {
+  animation-name: gallery-title-glitch-two;
+}
+
+.gallery-title__text.is-glitching::before {
+  animation-duration: 1.8s;
+}
+
+.gallery-title__text.is-glitching::after {
+  animation-duration: 2.1s;
+}
+
+.gallery-title__text.is-static::before,
+.gallery-title__text.is-static::after {
+  animation: none;
+  transform: translate3d(0, 0, 0);
+  clip-path: inset(0 0 0 0);
+  opacity: 0.28;
+}
+
+@keyframes gallery-title-glitch-one {
+  0% {
+    clip-path: inset(80% 0 0 0);
+    transform: translate3d(0, 0, 0);
+  }
+  10% {
+    clip-path: inset(10% 0 85% 0);
+    transform: translate3d(-4px, -3px, 0);
+  }
+  20% {
+    clip-path: inset(40% 0 30% 0);
+    transform: translate3d(2px, 2px, 0);
+  }
+  30% {
+    clip-path: inset(0 0 65% 0);
+    transform: translate3d(-2px, 1px, 0);
+  }
+  44% {
+    clip-path: inset(25% 0 45% 0);
+    transform: translate3d(0, 0, 0);
+  }
+  60% {
+    clip-path: inset(50% 0 15% 0);
+    transform: translate3d(3px, -2px, 0);
+  }
+  75% {
+    clip-path: inset(10% 0 55% 0);
+    transform: translate3d(-3px, 2px, 0);
+  }
+  90% {
+    clip-path: inset(30% 0 20% 0);
+    transform: translate3d(2px, -1px, 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes gallery-title-glitch-two {
+  0% {
+    clip-path: inset(0 0 70% 0);
+    transform: translate3d(0, 0, 0);
+  }
+  12% {
+    clip-path: inset(35% 0 35% 0);
+    transform: translate3d(3px, 2px, 0);
+  }
+  25% {
+    clip-path: inset(5% 0 80% 0);
+    transform: translate3d(-2px, -2px, 0);
+  }
+  40% {
+    clip-path: inset(45% 0 30% 0);
+    transform: translate3d(4px, 1px, 0);
+  }
+  58% {
+    clip-path: inset(15% 0 60% 0);
+    transform: translate3d(-4px, 0, 0);
+  }
+  72% {
+    clip-path: inset(70% 0 5% 0);
+    transform: translate3d(2px, 2px, 0);
+  }
+  88% {
+    clip-path: inset(20% 0 40% 0);
+    transform: translate3d(-1px, 3px, 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-title__text::before,
+  .gallery-title__text::after {
+    animation: none !important;
+    transform: translate3d(0, 0, 0);
+    clip-path: inset(0 0 0 0);
+  }
+}

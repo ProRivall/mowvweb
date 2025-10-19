@@ -1,0 +1,45 @@
+.marquee-strip {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(24px, 6vw, 32px) 0;
+  background: var(--marquee-background, rgba(0, 0, 0, 0.05));
+  box-shadow: 0 0 32px var(--marquee-glow, transparent);
+}
+
+.marquee-strip__mask {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.marquee-strip__track {
+  display: flex;
+  align-items: center;
+  gap: clamp(2.25rem, 5vw, 3.75rem);
+  width: max-content;
+  will-change: transform;
+  animation: marquee-scroll var(--marquee-duration, 22s) linear infinite;
+}
+
+.marquee-strip__text {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  white-space: nowrap;
+  font-size: clamp(1rem, 2.1vw, 1.5rem);
+  line-height: 1;
+}
+
+.marquee-strip__text--variable {
+  padding-right: clamp(2rem, 5vw, 3.5rem);
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
