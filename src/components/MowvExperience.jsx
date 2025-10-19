@@ -29,7 +29,6 @@ export default function MowvExperience() {
   const [galleryTitleGlitch, setGalleryTitleGlitch] = useState(false);
   const [currentMorphIndex, setCurrentMorphIndex] = useState(0);
 
-  const galleryRef = useRef(null);
   const autoplayRef = useRef(null);
   const resumeTimeoutRef = useRef(null);
   const loadingTimeoutRef = useRef(null);
@@ -260,7 +259,6 @@ export default function MowvExperience() {
           morphWords={MORPH_WORDS}
           currentMorphIndex={currentMorphIndex}
           isTitleGlitch={galleryTitleGlitch}
-          galleryRef={galleryRef}
           onHoverStart={handleMouseEnterGallery}
           onHoverEnd={handleMouseLeaveGallery}
           motionEnabled={motionEnabled}

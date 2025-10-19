@@ -1,178 +1,216 @@
-# codex_instructions.txt
-# Context: React + Vite + Three.js + GSAP
-# Obiectiv: Repară mobile UX/performance fără a modifica animațiile/efectele existente.
-# Reguli: NU șterge sau redenumi timeline-uri GSAP, obiecte din scenă 3D sau componente. Doar layout, CSS, event handling, performanță.
+# Context: MOWV React + Vite + GSAP + Three.js + Lenis.
+# Goal: Add cinematic responsive navbar + working left/right swipe for Gallery and StreetStories, and enforce proper snap transitions between sections (no “dead zones” between them).
+# Style: Cinematic, fluid, minimal, dark luxury.
 
 ===============================================================================
-1) Creează hook pentru smooth scroll + sincronizare GSAP
+2) CINEMATIC NAVBAR (with GSAP hamburger)
 ===============================================================================
-Create file: src/hooks/useSmoothScroll.js
-WITH EXACT CONTENT:
+Replace your current Navbar component with this structure:
+----------------------------------------------------------------
+<nav className="navbar">
+  <div className="logo">MOWV</div>
+  <div className={`nav-links ${menuOpen ? "open" : ""}`}>
+    <a href="#home">Home</a>
+    <a href="#about">About</a>
+    <a href="#stories">Stories</a>
+    <a href="#gallery">Gallery</a>
+    <a href="#join">Join</a>
+  </div>
+  <button className={`menu-toggle ${menuOpen ? "active" : ""}`} onClick={toggleMenu} aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+----------------------------------------------------------------
+
+Add this JS logic in your navbar or main app file:
+----------------------------------------------------------------
+import gsap from "gsap";
+const [menuOpen, setMenuOpen] = useState(false);
+const toggleMenu = () => {
+  setMenuOpen(!menuOpen);
+  const tl = gsap.timeline({ defaults: { ease: "power3.inOut" } });
+  if (!menuOpen) {
+    tl.fromTo(".nav-links a", { y: 30, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.08, duration: 0.6 });
+  } else {
+    tl.to(".nav-links a", { y: -20, opacity: 0, stagger: 0.05, duration: 0.3 });
+  }
+};
+----------------------------------------------------------------
+
+CSS:
+----------------------------------------------------------------
+.navbar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.4);
+  color: #FF0420;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  transition: transform 0.4s ease;
+}
+.nav-links a {
+  color: #FF0420;
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.3s ease;
+}
+
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 3000;
+}
+.menu-toggle span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: #FF0420;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+.menu-toggle.active span:nth-child(1) {
+  transform: rotate(45deg) translateY(7px);
+}
+.menu-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+.menu-toggle.active span:nth-child(3) {
+  transform: rotate(-45deg) translateY(-7px);
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.96);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transform: translateY(-100%);
+  }
+  .nav-links.open {
+    transform: translateY(0);
+  }
+  .menu-toggle {
+    display: flex;
+  }
+}
+----------------------------------------------------------------
+
+===============================================================================
+3) SWIPE SUPPORT FOR GALLERY & STREETSTORIES
+===============================================================================
+Replace scroll-only behavior with GSAP Draggable (or touch-based horizontal swipe).
+Create this helper hook:
 ----------------------------------------------------------------
 import { useEffect } from "react";
-import Lenis from "@studio-freight/lenis";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap } from "gsap";
+import { Draggable } from "gsap/Draggable";
 
-export default function useSmoothScroll() {
+export function useSwipeCarousel(selector) {
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
+    gsap.registerPlugin(Draggable);
+    const container = document.querySelector(selector);
+    if (!container) return;
 
-    const lenis = new Lenis({
-      smooth: true,
-      lerp: 0.1,
-      gestureDirection: "vertical",
-      smoothTouch: true,
-      touchMultiplier: 1.5,
+    Draggable.create(container, {
+      type: "x",
+      bounds: { minX: -container.scrollWidth + container.offsetWidth, maxX: 0 },
+      inertia: true,
+      edgeResistance: 0.85,
     });
-
-    const raf = (time) => {
-      lenis.raf(time);
-      ScrollTrigger.update();
-      requestAnimationFrame(raf);
-    };
-    requestAnimationFrame(raf);
-
-    lenis.on("scroll", ScrollTrigger.update);
-
-    ScrollTrigger.defaults({
-      fastScrollEnd: true,
-      preventOverlaps: true,
-      anticipatePin: 1,
-    });
-    ScrollTrigger.config({
-      autoRefreshEvents:
-        "visibilitychange,DOMContentLoaded,load,resize,orientationchange",
-    });
-
-    const onResize = () => ScrollTrigger.refresh();
-    window.addEventListener("orientationchange", onResize);
-    window.addEventListener("resize", onResize);
-
-    return () => {
-      window.removeEventListener("orientationchange", onResize);
-      window.removeEventListener("resize", onResize);
-      lenis.destroy();
-      // Kill triggers only (NU timelines)
-      gsap.utils.toArray(ScrollTrigger.getAll()).forEach(t => t.kill(false));
-    };
-  }, []);
+  }, [selector]);
 }
 ----------------------------------------------------------------
 
-Also add dependency (developer will run): npm i @studio-freight/lenis
-
-
-===============================================================================
-2) Aplică hook-ul în componenta rădăcină
-===============================================================================
-Edit file: src/App.jsx  (sau componenta rădăcină existentă)
-- Add at top: import useSmoothScroll from "./hooks/useSmoothScroll";
-- Inside the root component, call: useSmoothScroll();
-Return ONLY the minimal diff needed.
-
-===============================================================================
-3) Optimizează Canvas pentru performanță & touch
-===============================================================================
-Find the Three Fiber <Canvas> component. Update props EXACTLY:
-- add: gl={{ antialias: true, powerPreference: "high-performance" }}
-- add: dpr={[1, 1.5]}
-- add: frameloop="demand"
-- ensure style includes: { touchAction: "none" } on the Canvas element
-- in any heavy useFrame loops, ensure we use invalidate() on state changes rather than continuous re-rendering.
-
-Edit ONLY the Canvas element props. Do not change scene content.
-
-===============================================================================
-4) Navbar: fix stacking, vizibilitate și clicabilitate
-===============================================================================
-Ensure Navbar is rendered OUTSIDE <Canvas>. If it's overlayed by Canvas, move it above Canvas in the DOM or apply higher stacking.
-Append to the global stylesheet (see next step) CSS rules for nav.
-
-===============================================================================
-5) CSS global: dvh, clamp, safe areas, scroll containers
-===============================================================================
-Edit or create a global stylesheet (e.g., src/styles/mobile.css or src/index.css). Append EXACTLY:
+Then call inside Gallery and StreetStories components:
 ----------------------------------------------------------------
-:root {
-  --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
-}
+useSwipeCarousel(".gallery-container");
+useSwipeCarousel(".stories-container");
+----------------------------------------------------------------
 
-nav {
-  position: fixed;
-  top: 0; left: 0; width: 100%;
-  z-index: 1000;
-  padding: 12px 20px;
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(8px);
-}
+Ensure these wrappers exist:
+----------------------------------------------------------------
+<div className="gallery-container">
+  {cards.map(...)}
+</div>
 
-section, .section {
-  min-height: 100dvh;
-  padding-inline: 5vw;
-}
+<div className="stories-container">
+  {stories.map(...)}
+</div>
+----------------------------------------------------------------
 
-h1 {
-  font-size: clamp(2rem, 7vw, 4.5rem);
-  line-height: 1.1;
-}
-
-.subtext, p {
-  font-size: clamp(1rem, 3.2vw, 1.6rem);
-}
-
-.button--motion, .motion-button {
-  margin-bottom: max(16px, var(--safe-bottom));
-}
-
-.scrollable, .gallery, .streetstories {
+And add CSS:
+----------------------------------------------------------------
+.gallery-container, .stories-container {
+  display: flex;
+  gap: 24px;
+  overflow: hidden;
   touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-  overflow-y: auto;
+  scroll-snap-type: x mandatory;
+}
+.gallery-container > *, .stories-container > * {
+  flex-shrink: 0;
+  scroll-snap-align: start;
 }
 ----------------------------------------------------------------
 
-If using Tailwind, produce equivalent utility classes at usage sites; otherwise, leave the above CSS appended globally.
-
 ===============================================================================
-6) GSAP ScrollTrigger: refresh & invalidateOnRefresh
+4) SECTION TRANSITIONS — NO DEAD ZONES
 ===============================================================================
-Locate ALL places where ScrollTrigger.create(...) is used.
-- Ensure each trigger includes: invalidateOnRefresh: true
-- Ensure a global call exists on mount: setTimeout(() => ScrollTrigger.refresh(), 0);
-- Ensure window resize/orientationchange already handled by the hook in step 1; do not duplicate.
-
-Example patch for a trigger (edit in place, keep existing options):
+Ensure every main section uses:
 ----------------------------------------------------------------
-ScrollTrigger.create({
-  ...existingOptions,
-  invalidateOnRefresh: true,
-});
+section {
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
 ----------------------------------------------------------------
+Add this CSS globally:
+----------------------------------------------------------------
+html, body {
+  scroll-snap-type: y mandatory;
+  overflow-x: hidden;
+  background-color: #000;
+}
+----------------------------------------------------------------
+This will ensure the user transitions cleanly between sections (no partial scroll stalls).
 
 ===============================================================================
-7) Touch routing: nu bloca swipe în secțiuni
+5) HERO & MOTION BUTTON SAFE AREAS
 ===============================================================================
-- Ensure Canvas pointer handlers (onPointerDown / onPointerMove) call e.stopPropagation() only when strictly necessary.
-- Ensure sections that must scroll have touch-action: pan-y (already added in CSS).
-
-===============================================================================
-8) Viewport meta & head
-===============================================================================
-Ensure index.html contains:
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-Do not remove other head tags.
+Add:
+----------------------------------------------------------------
+h1 { font-size: clamp(2.4rem, 8vw, 5rem); }
+.button--motion {
+  margin-bottom: max(24px, env(safe-area-inset-bottom));
+}
+----------------------------------------------------------------
 
 ===============================================================================
 DELIVERABLE
 ===============================================================================
-Return ONLY:
-- The new file: src/hooks/useSmoothScroll.js
-- The minimal diff for src/App.jsx (import + hook call)
-- The minimal diff for the Canvas props
-- The appended CSS block to the global stylesheet
-- The minimal diffs adding invalidateOnRefresh:true to ScrollTriggers
-
-Do NOT alter or remove existing animations, timelines, 3D objects, or visual effects.
-Build must pass: npm run dev && npm run build
+✅ Keep the progress bar logic untouched.  
+✅ Add cinematic GSAP hamburger navbar.  
+✅ Add horizontal swipe (Draggable) for Gallery & StreetStories.  
+✅ Add vertical snap sections (no stuck in-between).  
+✅ Add safe area handling for Motion button.  
+✅ Maintain 3D and animation integrity.
