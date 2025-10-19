@@ -1,12 +1,14 @@
 .hero-section {
   position: relative;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   overflow: hidden;
-  padding: 0 1.5rem;
+  padding-inline: clamp(24px, 5vw, 72px);
+  padding-top: max(24px, var(--safe-top));
+  padding-bottom: max(24px, var(--safe-bottom));
   isolation: isolate;
 }
 
@@ -56,8 +58,8 @@
 .hero-title {
   font-family: 'Raleway', sans-serif;
   font-weight: 900;
-  font-size: clamp(3.5rem, 9vw, 8rem);
-  letter-spacing: -0.04em;
+  font-size: clamp(2.5rem, 9vw, 6rem);
+  letter-spacing: -0.02em;
   line-height: 0.9;
   text-transform: uppercase;
   margin: 0 0 1.25rem;
@@ -77,7 +79,7 @@
 }
 
 .hero-subtitle {
-  font-size: clamp(1.05rem, 2.2vw, 1.5rem);
+  font-size: clamp(1rem, 3vw, 1.6rem);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   margin: 0 auto 2.5rem;

@@ -67,8 +67,8 @@ export default function HeroSection({ colors, heroVisible, mousePosition, header
     ? {
         color: colors.text,
         marginTop: `calc(-1 * ${headerOffset}px)`,
-        paddingTop: `${headerOffset}px`,
-        paddingBottom: `${Math.round(headerOffset * 0.35)}px`,
+        paddingTop: `calc(${headerOffset}px + var(--safe-top))`,
+        paddingBottom: `max(${Math.round(headerOffset * 0.35)}px, var(--safe-bottom))`,
       }
     : { color: colors.text };
 

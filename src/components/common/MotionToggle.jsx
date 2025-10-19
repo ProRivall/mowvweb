@@ -3,6 +3,7 @@ export default function MotionToggle({ motionEnabled, onToggle, colors }) {
 
   return (
     <button
+      className="motion-button"
       onClick={onToggle}
       style={{
         position: 'fixed',

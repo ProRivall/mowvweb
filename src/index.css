@@ -129,15 +129,23 @@ nav {
   left: 0;
   width: 100%;
   z-index: 1000;
-  padding: 12px 20px;
+  padding: calc(12px + var(--safe-top)) 20px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  color: #ff0420;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
 section,
 .section {
   min-height: 100dvh;
   padding-inline: 5vw;
+  padding-top: max(16px, var(--safe-top));
+  padding-bottom: max(16px, var(--safe-bottom));
 }
 
 h1 {

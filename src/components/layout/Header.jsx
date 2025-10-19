@@ -66,33 +66,31 @@ export default function Header({ colors, isMobile }) {
           >
             MOWV
           </div>
-          {!isMobile && (
-            <nav
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                flex: 1,
-                gap: 'clamp(28px, 4vw, 72px)',
-              }}
-            >
-              {navItems.map((item) => (
-                <a
-                  key={item}
-                  href={'#' + item.toLowerCase()}
-                  className="nav-link"
-                  style={{
-                    color: colors.text,
-                    fontWeight: 500,
-                    fontSize: '1rem',
-                    textDecoration: 'none',
-                  }}
-                >
-                  {item}
-                </a>
-              ))}
-            </nav>
-          )}
+          <nav
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: isMobile ? 'flex-end' : 'flex-end',
+              flex: 1,
+              gap: isMobile ? '18px' : 'clamp(28px, 4vw, 72px)',
+            }}
+          >
+            {navItems.map((item) => (
+              <a
+                key={item}
+                href={'#' + item.toLowerCase()}
+                className="nav-link"
+                style={{
+                  color: 'inherit',
+                  fontWeight: 500,
+                  fontSize: isMobile ? '0.85rem' : '1rem',
+                  textDecoration: 'none',
+                }}
+              >
+                {item}
+              </a>
+            ))}
+          </nav>
         </div>
       </GlassSurface>
     </header>
