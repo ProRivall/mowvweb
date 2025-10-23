@@ -39,12 +39,11 @@ body {
   min-height: 100vh;
   background: #000;
   color: #DEE0E2;
-  scroll-snap-type: y proximity;
   overflow-x: hidden;
 }
 
 html {
-  scroll-snap-type: y proximity;
+  height: 100%;
 }
 
 body.no-scroll {
@@ -134,19 +133,11 @@ button {
 }
 
 
-section,
-section {
-  scroll-snap-align: start;
-  scroll-snap-stop: normal;
-}
-
 .section {
   min-height: 100dvh;
   padding-inline: 5vw;
   padding-top: max(16px, var(--safe-top));
   padding-bottom: max(16px, var(--safe-bottom));
-  scroll-snap-align: start;
-  scroll-snap-stop: normal;
 }
 
 h1 {
@@ -178,25 +169,10 @@ p {
   gap: 24px;
   overflow: hidden;
   touch-action: pan-y;
-  scroll-snap-type: x mandatory;
 }
 
 .gallery-container > *,
 .stories-container > * {
   flex-shrink: 0;
-  scroll-snap-align: start;
-}
-
-@media (max-width: 768px) {
-  html,
-  body {
-    scroll-snap-type: none;
-  }
-
-  section,
-  .section {
-    scroll-snap-align: unset;
-    scroll-snap-stop: normal;
-  }
 }
 

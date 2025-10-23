@@ -60,34 +60,45 @@ export function useSwipeCarousel(
       return undefined;
     }
 
+    let startPointerX = 0;
     let startPointerY = 0;
+    let lastPointerX = 0;
     let lastPointerY = 0;
 
     const draggable = Draggable.create(element, {
       type: 'x',
       inertia: true,
-      dragResistance: 0.45,
+      dragResistance: 0.5,
       edgeResistance: 0.85,
       onPress() {
         gsap.killTweensOf(element);
         pressHandlerRef.current?.();
+        startPointerX = this.pointerX ?? 0;
         startPointerY = this.pointerY ?? 0;
+        lastPointerX = startPointerX;
         lastPointerY = startPointerY;
       },
       onDrag() {
+        lastPointerX = this.pointerX ?? lastPointerX;
         lastPointerY = this.pointerY ?? lastPointerY;
       },
       onRelease: function handleRelease() {
-        const deltaX = this.endX - this.startX;
-        const deltaY = (lastPointerY ?? 0) - (startPointerY ?? 0);
+        const pointerX = this.pointerX ?? lastPointerX;
+        const pointerY = this.pointerY ?? lastPointerY;
+        const deltaX = pointerX - startPointerX;
+        const deltaY = pointerY - startPointerY;
 
-        if (Math.abs(deltaX) >= threshold && Math.abs(deltaX) > Math.abs(deltaY)) {
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+
+        if (absX >= threshold && absX > absY * 1.2) {
           if (deltaX < 0) {
             leftHandlerRef.current?.();
           } else {
             rightHandlerRef.current?.();
           }
         }
+
         gsap.to(element, { x: 0, duration: 0.4, ease: 'power3.out' });
         releaseHandlerRef.current?.();
       },
