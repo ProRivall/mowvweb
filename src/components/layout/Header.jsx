@@ -129,17 +129,23 @@ export default function Header({ colors, isMobile }) {
     }
   };
 
+  const handleNavClick = () => {
+    if (isMobile) {
+      closeMenu(true);
+    }
+  };
+
+  const handleOverlayClick = (event) => {
+    if (event.target === event.currentTarget) {
+      closeMenu(true);
+    }
+  };
+
   const toggleMenu = () => {
     if (menuOpen) {
       closeMenu(true);
     } else {
       openMenu();
-    }
-  };
-
-  const handleNavClick = () => {
-    if (isMobile) {
-      closeMenu(true);
     }
   };
 
@@ -322,11 +328,9 @@ export default function Header({ colors, isMobile }) {
         .mobile-nav {
           position: fixed;
           inset: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 24px;
+          display: grid;
+          place-items: center;
+          padding: clamp(40px, 10vw, 60px) clamp(24px, 6vw, 40px);
           background: rgba(4, 6, 10, 0.96);
           pointer-events: none;
           transform: translateY(-100%);
@@ -338,13 +342,39 @@ export default function Header({ colors, isMobile }) {
           pointer-events: auto;
         }
 
+        .mobile-nav__inner {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: clamp(18px, 5vw, 32px);
+        }
+
         .mobile-nav a {
-          font-size: 1.4rem;
-          letter-spacing: 0.22em;
+          font-size: clamp(1.1rem, 6vw, 1.8rem);
+          letter-spacing: 0.28em;
           text-transform: uppercase;
           color: ${accentColor};
           text-decoration: none;
           font-weight: 700;
+        }
+
+        .mobile-nav__close {
+          margin-top: clamp(18px, 6vw, 28px);
+          padding: 12px 28px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          background: rgba(8, 10, 14, 0.7);
+          color: ${accentColor};
+          font-size: 0.78rem;
+          letter-spacing: 0.28em;
+          text-transform: uppercase;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .mobile-nav__close:focus-visible {
+          outline: 2px solid ${accentColor};
+          outline-offset: 4px;
         }
 
         @media (max-width: 768px) {
@@ -511,12 +541,18 @@ export default function Header({ colors, isMobile }) {
         ref={mobileNavRef}
         className={`mobile-nav ${menuOpen ? 'open' : ''}`}
         aria-hidden={!menuOpen}
+        onClick={handleOverlayClick}
       >
-        {[...leftNavItems, ...rightNavItems].map((item) => (
-          <a key={item} href={'#' + item.toLowerCase()} onClick={handleNavClick}>
-            {item}
-          </a>
-        ))}
+        <div className="mobile-nav__inner">
+          {[...leftNavItems, ...rightNavItems].map((item) => (
+            <a key={item} href={'#' + item.toLowerCase()} onClick={handleNavClick}>
+              {item}
+            </a>
+          ))}
+          <button type="button" className="mobile-nav__close" onClick={() => closeMenu(true)}>
+            Close
+          </button>
+        </div>
       </div>
     </>
   );

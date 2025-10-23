@@ -60,6 +60,9 @@ export function useSwipeCarousel(
       return undefined;
     }
 
+    let startPointerY = 0;
+    let lastPointerY = 0;
+
     const draggable = Draggable.create(element, {
       type: 'x',
       inertia: true,
@@ -68,10 +71,17 @@ export function useSwipeCarousel(
       onPress() {
         gsap.killTweensOf(element);
         pressHandlerRef.current?.();
+        startPointerY = this.pointerY ?? 0;
+        lastPointerY = startPointerY;
+      },
+      onDrag() {
+        lastPointerY = this.pointerY ?? lastPointerY;
       },
       onRelease: function handleRelease() {
         const deltaX = this.endX - this.startX;
-        if (Math.abs(deltaX) >= threshold) {
+        const deltaY = (lastPointerY ?? 0) - (startPointerY ?? 0);
+
+        if (Math.abs(deltaX) >= threshold && Math.abs(deltaX) > Math.abs(deltaY)) {
           if (deltaX < 0) {
             leftHandlerRef.current?.();
           } else {
