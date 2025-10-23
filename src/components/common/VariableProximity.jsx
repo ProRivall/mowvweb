@@ -172,7 +172,7 @@ const VariableProximity = forwardRef(function VariableProximity(
       const scale = 1 + falloffValue * 0.35;
       letterRef.style.transform = `scale(${scale})`;
       letterRef.style.opacity = String(0.75 + falloffValue * 0.25);
-      letterRef.style.filter = `drop-shadow(0 0 ${falloffValue * 18}px rgba(255, 45, 72, ${0.35 + falloffValue * 0.4}))`;
+      letterRef.style.filter = `drop-shadow(0 0 ${falloffValue * 18}px rgba(220, 224, 226, ${0.18 + falloffValue * 0.3}))`;
     });
   });
 
@@ -223,3 +223,5 @@ const VariableProximity = forwardRef(function VariableProximity(
 });
 
 export default VariableProximity;
+
+

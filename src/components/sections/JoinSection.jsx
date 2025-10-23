@@ -4,6 +4,8 @@ export default function JoinSection({ colors }) {
   return (
     <SectionReveal
       id="join"
+      data-parallax-section
+      data-parallax-depth="1.05"
       style={{
         padding: '140px 0 160px',
         background: 'linear-gradient(180deg, ' + colors.bg + ' 0%, #050505 100%)',
@@ -13,7 +15,10 @@ export default function JoinSection({ colors }) {
       }}
       disableBottomFade
     >
+      <div data-parallax-content data-parallax-depth="1.15">
       <div
+        data-parallax-content
+        data-parallax-depth="0.4"
         style={{
           position: 'absolute',
           inset: 0,
@@ -28,6 +33,8 @@ export default function JoinSection({ colors }) {
       />
 
       <div
+        data-parallax-content
+        data-parallax-depth="0.4"
         style={{
           position: 'absolute',
           top: '50%',
@@ -216,6 +223,7 @@ export default function JoinSection({ colors }) {
           <br />
           <span style={{ color: colors.accent }}>Drop your email, stay ahead.</span>
         </div>
+      </div>
       </div>
     </SectionReveal>
   );

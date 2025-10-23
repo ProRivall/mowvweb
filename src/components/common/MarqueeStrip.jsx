@@ -33,35 +33,38 @@ export default function MarqueeStrip({
   duration = FALLBACK_DURATION,
   trackOpacity = 1,
 }) {
-  const segment = useMemo(() => `${text} • `, [text]);
+  const segment = useMemo(() => `${text} \u2022 `, [text]);
   const segments = useMemo(() => {
     const base = Array.from({ length: Math.max(4, repeatCount) }, () => segment);
     return [...base, ...base];
   }, [repeatCount, segment]);
 
   const maskRef = useRef(null);
+  const accent = colors?.accentLight || colors?.accent || '#FF3B3B';
+  const neutralText = colors?.text || '#DEE0E2';
 
   const trackStyle = {
-    color: colors.text,
     '--marquee-duration': `${duration}s`,
     animationPlayState: motionEnabled ? 'running' : 'paused',
     opacity: trackOpacity,
+    color: neutralText,
   };
 
   const backgroundStyle = useMemo(() => {
-    const accentDeep = colors.accentDeep || colors.accent || '#7A0000';
-    const accentLight = colors.accentLight || colors.accent || '#FF3B3B';
-    const base = 'rgba(10, 10, 10, 0.42)';
     const overlay = motionEnabled
-      ? `linear-gradient(90deg, ${accentDeep}26 0%, ${base} 45%, ${base} 55%, ${accentLight}26 100%)`
-      : `linear-gradient(90deg, rgba(35, 35, 35, 0.6) 0%, rgba(20, 20, 20, 0.6) 50%, rgba(35, 35, 35, 0.6) 100%)`;
-    const glowAlpha = motionEnabled ? Math.min(0.1 + trackOpacity, 0.28) : 0;
+      ? `linear-gradient(90deg, ${hexToRgba(accent, 0.16)} 0%, rgba(14, 16, 22, 0.96) 45%, rgba(18, 20, 29, 0.9) 55%, ${hexToRgba(accent, 0.16)} 100%)`
+      : 'linear-gradient(90deg, rgba(16, 18, 26, 0.9) 0%, rgba(10, 11, 17, 0.94) 50%, rgba(16, 18, 26, 0.9) 100%)';
+    const glowAlpha = motionEnabled ? Math.min(0.08 + trackOpacity * 1.4, 0.22) : 0.08;
+    const accentGlow = hexToRgba(accent, motionEnabled ? 0.42 : 0.28);
 
     return {
       '--marquee-background': overlay,
-      '--marquee-glow': hexToRgba(accentLight, glowAlpha),
+      '--marquee-glow': hexToRgba(accent, glowAlpha),
+      '--marquee-accent': accent,
+      '--marquee-neutral': hexToRgba(neutralText, 0.92),
+      '--marquee-accent-glow': accentGlow,
     };
-  }, [colors, motionEnabled, trackOpacity]);
+  }, [accent, neutralText, motionEnabled, trackOpacity]);
 
   return (
     <div className="marquee-strip" style={backgroundStyle}>
@@ -72,8 +75,8 @@ export default function MarqueeStrip({
               key={`marquee-segment-${index}`}
               label={content}
               containerRef={maskRef}
-              fromFontVariationSettings="'wght' 580, 'wdth' 96"
-              toFontVariationSettings="'wght' 820, 'wdth' 105"
+              fromFontVariationSettings="'wght' 560, 'wdth' 94"
+              toFontVariationSettings="'wght' 820, 'wdth' 104"
               radius={motionEnabled ? 220 : 0}
               falloff="gaussian"
               className="marquee-strip__text marquee-strip__text--variable"

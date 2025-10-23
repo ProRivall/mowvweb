@@ -23,7 +23,7 @@ export default function SectionReveal({
   className = '',
   style,
   children,
-  once = false,
+  once = true,
   viewAmount = 0.35,
   rootMargin = '-15% 0px -15% 0px',
   disableTopFade = false,
@@ -56,3 +56,4 @@ export default function SectionReveal({
     </MotionSection>
   );
 }
+

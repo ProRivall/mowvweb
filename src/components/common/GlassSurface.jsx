@@ -48,6 +48,8 @@ export default function GlassSurface({
   xChannel = 'R',
   yChannel = 'G',
   mixBlendMode = 'difference',
+  overlayOpacity = 0.85,
+
   className = '',
   style = {},
 }) {
@@ -193,6 +195,7 @@ export default function GlassSurface({
 
   const svgSupported = supportsSVGFilters();
   const backdropFilterSupported = supportsBackdropFilter();
+  const wantsTransparent = backgroundOpacity <= 0.001 && overlayOpacity <= 0.001;
 
   const getContainerStyles = () => {
     if (svgSupported) {
@@ -201,24 +204,26 @@ export default function GlassSurface({
         background: isDarkMode ? `hsl(0 0% 0% / ${backgroundOpacity})` : `hsl(0 0% 100% / ${backgroundOpacity})`,
         backdropFilter: `url(#${filterId}) saturate(${saturation})`,
         WebkitBackdropFilter: `url(#${filterId}) saturate(${saturation})`,
-        boxShadow: isDarkMode
-          ? `0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset,
-              0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset,
-              0px 4px 16px rgba(17, 17, 26, 0.05),
-              0px 8px 24px rgba(17, 17, 26, 0.05),
-              0px 16px 56px rgba(17, 17, 26, 0.05),
-              0px 4px 16px rgba(17, 17, 26, 0.05) inset,
-              0px 8px 24px rgba(17, 17, 26, 0.05) inset,
-              0px 16px 56px rgba(17, 17, 26, 0.05) inset`
-          : `0 0 2px 1px color-mix(in oklch, black, transparent 85%) inset,
-              0 0 10px 4px color-mix(in oklch, black, transparent 90%) inset,
-              0px 4px 16px rgba(17, 17, 26, 0.05),
-              0px 8px 24px rgba(17, 17, 26, 0.05),
-              0px 16px 56px rgba(17, 17, 26, 0.05),
-              0px 4px 16px rgba(17, 17, 26, 0.05) inset,
-              0px 8px 24px rgba(17, 17, 26, 0.05) inset,
-              0px 16px 56px rgba(17, 17, 26, 0.05) inset`,
+        boxShadow:`none`,
       };
+    }
+
+    if (wantsTransparent) {
+      const borderColor = isDarkMode ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.18)';
+      const glowShadow = isDarkMode
+        ? '0 20px 45px rgba(0, 0, 0, 0.45)'
+        : '0 20px 45px rgba(0, 0, 0, 0.18)';
+      const styles = {
+        ...baseStyles,
+        background: 'transparent',
+        border: `1px solid ${borderColor}`,
+        boxShadow: glowShadow,
+      };
+      if (backdropFilterSupported) {
+        styles.backdropFilter = 'blur(16px) saturate(1.2)';
+        styles.WebkitBackdropFilter = 'blur(16px) saturate(1.2)';
+      }
+      return styles;
     }
 
     if (isDarkMode) {
@@ -334,7 +339,7 @@ export default function GlassSurface({
         style={{
           borderRadius: 'inherit',
           mixBlendMode: 'soft-light',
-          opacity: 0.85,
+          opacity: overlayOpacity,
           background: isDarkMode
             ? 'linear-gradient(142deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 100%)'
             : 'linear-gradient(142deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.12) 100%)',

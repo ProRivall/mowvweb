@@ -1,68 +1,43 @@
 import { motion } from 'framer-motion';
-
 import Hyperspeed from '../Hyperspeed.jsx';
-
 import './HeroSection.css';
 
-const heroTitle = 'WE MOVE DIFFERENT';
-const manifestLines = [
-  'Motion-built silhouettes tuned for the night drive.',
-  'Fabric engineered to keep pace with every shift.',
-  'Details sharpened by neon, calibrated for velocity.',
-];
-
 const titleVariants = {
-  hidden: { opacity: 0, y: 80, scale: 0.92, filter: 'blur(16px)' },
+  hidden: { opacity: 0, y: 60, scale: 0.95, filter: 'blur(12px)' },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
     filter: 'blur(0px)',
-    transition: { duration: 1.1, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 1, ease: [0.22, 1, 0.36, 1] },
   },
 };
 
 const subtitleVariants = {
-  hidden: { opacity: 0, y: 40, filter: 'blur(12px)' },
+  hidden: { opacity: 0, y: 30, filter: 'blur(8px)' },
   visible: {
     opacity: 1,
     y: 0,
     filter: 'blur(0px)',
-    transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.1 },
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 },
   },
 };
 
-const manifestVariants = {
-  hidden: { opacity: 0, y: 60, filter: 'blur(18px)' },
+const ctaVariants = {
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
-    transition: {
-      duration: 1.1,
-      ease: [0.22, 1, 0.36, 1],
-      staggerChildren: 0.18,
-      delayChildren: 0.25,
-    },
-  },
-};
-
-const manifestItemVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.4 },
   },
 };
 
 const MotionH1 = motion.h1;
 const MotionP = motion.p;
-const MotionUl = motion.ul;
-const MotionLi = motion.li;
+const MotionDiv = motion.div;
 
 export default function HeroSection({ colors, heroVisible, mousePosition, headerOffset = 0 }) {
-  const contentTransform = `translate(${mousePosition.x * -3}px, ${mousePosition.y * -3}px)`;
+  const contentTransform = `translate(${mousePosition.x * -2}px, ${mousePosition.y * -2}px)`;
   const sectionStyle = headerOffset
     ? {
         color: colors.text,
@@ -77,15 +52,19 @@ export default function HeroSection({ colors, heroVisible, mousePosition, header
       id="home"
       className="hero-section"
       style={sectionStyle}
+      data-parallax-section
+      data-parallax-depth="1.1"
     >
-      <div className="hero-background">
+      <div className="hero-background" data-parallax-content data-parallax-depth="0.55">
         <Hyperspeed />
-        <div className="hero-gradient-glow" />
         <div className="hero-scanlines" />
+        <div className="hero-vignette" />
       </div>
 
       <div
         className="hero-content"
+        data-parallax-content
+        data-parallax-depth="1.25"
         style={{
           transform: contentTransform,
           paddingTop: headerOffset ? `${Math.round(headerOffset * 0.25)}px` : undefined,
@@ -97,11 +76,8 @@ export default function HeroSection({ colors, heroVisible, mousePosition, header
           initial="hidden"
           animate={heroVisible.title ? 'visible' : 'hidden'}
         >
-          {heroTitle.split(' ').map((word, index) => (
-            <span key={word} className={index === 1 ? 'hero-title-accent' : undefined}>
-              {word}
-            </span>
-          ))}
+          <span>MOVE</span>
+          <span className="hero-title-accent">DIFFERENT</span>
         </MotionH1>
 
         <MotionP
@@ -111,22 +87,22 @@ export default function HeroSection({ colors, heroVisible, mousePosition, header
           initial="hidden"
           animate={heroVisible.subtitle ? 'visible' : 'hidden'}
         >
-          Not fashion. Not hype. Motion turned into fabric.
+          Urban energy materialized.
         </MotionP>
 
-        <MotionUl
-          className="hero-manifest"
-          variants={manifestVariants}
+        <MotionDiv
+          className="hero-cta"
+          variants={ctaVariants}
           initial="hidden"
           animate={heroVisible.manifest ? 'visible' : 'hidden'}
         >
-          {manifestLines.map((line) => (
-            <MotionLi key={line} variants={manifestItemVariants}>
-              <span className="hero-manifest-dot" />
-              {line}
-            </MotionLi>
-          ))}
-        </MotionUl>
+          <a href="#about" className="cta-button cta-primary">
+            Enter the Movement
+          </a>
+          <a href="#gallery" className="cta-button cta-secondary">
+            Explore
+          </a>
+        </MotionDiv>
       </div>
     </section>
   );

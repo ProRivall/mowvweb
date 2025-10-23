@@ -1,12 +1,6 @@
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { Draggable } from 'gsap/Draggable';
-
 import SectionReveal from '../common/SectionReveal.jsx';
 import GalleryTitle from './GalleryTitle.jsx';
-import { useSwipeCarousel } from '../../hooks/useSwipeCarousel.js';
-
-const GAP = 24;
+import { useSwipeCarousel } from '../../hooks/useSwipeCarousel';
 
 export default function GallerySection({
   colors,
@@ -19,112 +13,48 @@ export default function GallerySection({
   morphWords,
   currentMorphIndex,
   isTitleGlitch,
+  galleryRef,
   onHoverStart,
   onHoverEnd,
   motionEnabled = true,
 }) {
-  const containerRef = useRef(null);
-  const widthRef = useRef(0);
+  useSwipeCarousel(galleryRef, {
+    onSwipeLeft: onNext,
+    onSwipeRight: onPrev,
+    onPress: onHoverStart,
+    onRelease: onHoverEnd,
+  });
 
-  useSwipeCarousel(containerRef);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) {
-      return undefined;
-    }
-
-    const instance = Draggable.get(container);
-    if (!instance) {
-      return undefined;
-    }
-
-    const computeCardWidth = () => {
-      const firstCard = container.firstElementChild;
-      if (!firstCard) {
-        widthRef.current = 0;
-        return;
-      }
-      const gapValue = Number.parseFloat(
-        getComputedStyle(container).columnGap || `${GAP}`,
-      );
-      widthRef.current = firstCard.getBoundingClientRect().width + gapValue;
-    };
-
-    computeCardWidth();
-    instance.applyBounds({
-      minX: Math.min(-container.scrollWidth + container.offsetWidth, 0),
-      maxX: 0,
-    });
-
-    const handleSnap = () => {
-      if (!widthRef.current) {
-        return;
-      }
-      const offset = Math.abs(instance.x);
-      const nextIndex = Math.min(
-        galleryItems.length - 1,
-        Math.round(offset / widthRef.current),
-      );
-      onSelectSlide(nextIndex);
-    };
-
-    instance.vars.onDragEnd = handleSnap;
-    instance.vars.onThrowComplete = handleSnap;
-
-    const handleResize = () => {
-      computeCardWidth();
-      instance.applyBounds({
-        minX: Math.min(-container.scrollWidth + container.offsetWidth, 0),
-        maxX: 0,
-      });
-      const target = -currentSlide * widthRef.current;
-      gsap.set(instance, { x: target });
-      instance.update();
-    };
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-    };
-  }, [currentSlide, galleryItems.length, onSelectSlide]);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    const instance = container ? Draggable.get(container) : null;
-    if (!container || !instance || !widthRef.current) {
-      return;
-    }
-
-    const target = -currentSlide * widthRef.current;
-    gsap.to(instance, {
-      x: target,
-      duration: 0.6,
-      ease: 'power3.inOut',
-      onUpdate: () => instance.update(),
-    });
-  }, [currentSlide]);
+  const getItemClass = (index) => {
+    let diff = index - currentSlide;
+    if (diff > 2) diff -= galleryItems.length;
+    if (diff < -2) diff += galleryItems.length;
+    if (diff === 0) return 'active';
+    if (diff === 1) return 'next';
+    if (diff === -1) return 'prev';
+    if (diff === 2) return 'far-next';
+    if (diff === -2) return 'far-prev';
+    return 'hidden';
+  };
 
   return (
     <SectionReveal
       id="gallery"
+      data-parallax-section
+      data-parallax-depth="1.1"
       style={{
         padding: '100px 20px',
-        minHeight: '100dvh',
+        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        gap: 'clamp(48px, 8vw, 80px)',
         alignItems: 'center',
         justifyContent: 'center',
-        background:
-          'radial-gradient(circle at 50% 50%, rgba(170,0,0,0.18) 0%, transparent 55%), #080808',
+        background: 'radial-gradient(circle at 50% 50%, rgba(170,0,0,0.22) 0%, transparent 55%), #0E0E0E',
       }}
       disableTopFade
     >
-      <div style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
+      <div data-parallax-content data-parallax-depth="1.1">
+      <div style={{ textAlign: 'center', marginBottom: '64px', position: 'relative', zIndex: 2 }}>
         <GalleryTitle
           key={`${morphWords[currentMorphIndex]}-${currentMorphIndex}`}
           text={morphWords[currentMorphIndex]}
@@ -132,51 +62,104 @@ export default function GallerySection({
           isGlitching={isTitleGlitch}
           motionEnabled={motionEnabled}
         />
-        <p
+        <div
           style={{
-            marginTop: '18px',
-            fontSize: '1rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
+            fontSize: '1.1rem',
             color: colors.muted,
+            textTransform: 'uppercase',
+            letterSpacing: '0.18em',
+            marginTop: '18px',
           }}
         >
           Captured Motion Street Narratives
-        </p>
+        </div>
       </div>
 
       <div
-        className="gallery-shell"
+        className="gallery-container"
+        ref={galleryRef}
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '1200px',
+          height: isMobile ? '480px' : '600px',
+          perspective: '1200px',
+          margin: '0 auto',
+          zIndex: 2,
+        }}
         onMouseEnter={onHoverStart}
         onMouseLeave={onHoverEnd}
       >
-        <div
-          className="gallery-container"
-          ref={containerRef}
-          style={{
-            cursor: 'grab',
-          }}
-        >
+        <div style={{ position: 'relative', width: '100%', height: '100%', transformStyle: 'preserve-3d' }}>
           {galleryItems.map((item, index) => {
-            const isActive = index === currentSlide;
+            const itemClass = getItemClass(index);
+            let transform = '';
+            let opacity = 0;
+            let zIndex = 0;
+            let filterValue = 'blur(1px)';
+
+            if (itemClass === 'active') {
+              transform = 'translateZ(0) scale(1)';
+              opacity = 1;
+              zIndex = 5;
+              filterValue = 'none';
+            } else if (itemClass === 'prev') {
+              transform = isMobile
+                ? 'translateZ(-150px) scale(0.75)'
+                : 'translateX(-500px) translateZ(-300px) rotateY(35deg)';
+              opacity = isMobile ? 0.4 : 0.6;
+              zIndex = 3;
+            } else if (itemClass === 'next') {
+              transform = isMobile
+                ? 'translateZ(-150px) scale(0.75)'
+                : 'translateX(500px) translateZ(-300px) rotateY(-35deg)';
+              opacity = isMobile ? 0.4 : 0.6;
+              zIndex = 3;
+            } else if (itemClass === 'far-prev') {
+              transform = isMobile
+                ? 'translateZ(-300px) scale(0.5)'
+                : 'translateX(-800px) translateZ(-500px) rotateY(45deg)';
+              opacity = 0;
+              zIndex = 1;
+            } else if (itemClass === 'far-next') {
+              transform = isMobile
+                ? 'translateZ(-300px) scale(0.5)'
+                : 'translateX(800px) translateZ(-500px) rotateY(-45deg)';
+              opacity = 0;
+              zIndex = 1;
+            }
+
             return (
-              <article
+              <div
                 key={item.id}
-                className={`gallery-card ${isActive ? 'is-active' : ''}`}
                 style={{
-                  width: isMobile ? 'min(72vw, 320px)' : 'clamp(280px, 26vw, 360px)',
-                  border: `1px solid ${colors.line}`,
-                  borderRadius: '18px',
-                  overflow: 'hidden',
-                  background: 'linear-gradient(135deg, #131519, #050507)',
-                  position: 'relative',
-                  boxShadow: isActive
-                    ? '0 24px 80px rgba(255, 26, 54, 0.38)'
-                    : '0 10px 30px rgba(0,0,0,0.35)',
-                  transition: 'box-shadow 0.4s ease',
+                  position: 'absolute',
+                  width: isMobile ? '320px' : '450px',
+                  height: isMobile ? '420px' : '550px',
+                  left: '50%',
+                  top: '50%',
+                  marginLeft: isMobile ? '-160px' : '-225px',
+                  marginTop: isMobile ? '-210px' : '-275px',
+                  transform,
+                  opacity,
+                  zIndex,
+                  filter: filterValue,
+                  cursor: 'grab',
+                  userSelect: 'none',
+                  transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               >
-                <div style={{ position: 'relative', height: isMobile ? '320px' : '400px' }}>
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    overflow: 'hidden',
+                    border: '1px solid ' + colors.line,
+                    background: 'linear-gradient(135deg, #0F1215, ' + colors.bg + ')',
+                    position: 'relative',
+                    boxShadow: itemClass === 'active' ? '0 20px 60px ' + colors.accent + '30' : 'none',
+                  }}
+                >
                   <img
                     src={item.image}
                     alt={item.title}
@@ -184,16 +167,11 @@ export default function GallerySection({
                       width: '100%',
                       height: '100%',
                       objectFit: 'cover',
-                      filter: isActive ? 'contrast(1)' : 'grayscale(0.9)',
-                      transition: 'filter 0.4s ease',
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background:
-                        'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.75) 100%)',
+                      filter:
+                        itemClass === 'active'
+                          ? 'grayscale(0%) contrast(1.08)'
+                          : 'grayscale(100%) contrast(1.2)',
+                      transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
                   />
                   <div
@@ -202,45 +180,42 @@ export default function GallerySection({
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      padding: '32px',
+                      padding: '36px',
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%)',
+                      transform: itemClass === 'active' ? 'translateY(0)' : 'translateY(100%)',
+                      transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
                   >
                     <div
                       style={{
                         fontFamily: 'Raleway, sans-serif',
                         fontWeight: 900,
+                        fontSize: '4.6rem',
                         color: colors.accent,
-                        opacity: 0.36,
-                        fontSize: '3.2rem',
+                        opacity: 0.32,
                         lineHeight: 1,
                       }}
                     >
                       {String(item.id).padStart(2, '0')}
                     </div>
-                    <h3
+                    <div
                       style={{
                         fontFamily: 'Raleway, sans-serif',
-                        fontWeight: 800,
-                        fontSize: '1.5rem',
-                        margin: '12px 0 6px',
-                        letterSpacing: '0.08em',
+                        fontWeight: 900,
+                        fontSize: '1.9rem',
                         textTransform: 'uppercase',
+                        margin: '8px 0',
+                        color: colors.text,
                       }}
                     >
                       {item.title}
-                    </h3>
-                    <p
-                      style={{
-                        color: colors.muted,
-                        fontSize: '0.95rem',
-                        lineHeight: 1.6,
-                      }}
-                    >
+                    </div>
+                    <div style={{ color: colors.muted, fontSize: '0.95rem', lineHeight: 1.6 }}>
                       {item.desc}
-                    </p>
+                    </div>
                   </div>
                 </div>
-              </article>
+              </div>
             );
           })}
         </div>
@@ -252,11 +227,13 @@ export default function GallerySection({
           justifyContent: 'center',
           alignItems: 'center',
           gap: '16px',
+          marginTop: '64px',
+          position: 'relative',
+          zIndex: 2,
         }}
       >
         <button
           onClick={onPrev}
-          className="gallery-cta"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -264,7 +241,7 @@ export default function GallerySection({
             minWidth: '60px',
             height: '46px',
             padding: '0 20px',
-            border: `1px solid ${colors.line}`,
+            border: '1px solid ' + colors.line,
             background: 'rgba(20, 23, 25, 0.6)',
             color: colors.accent,
             fontFamily: 'Raleway, sans-serif',
@@ -273,38 +250,51 @@ export default function GallerySection({
             cursor: 'pointer',
             transition: 'all 0.4s',
             borderRadius: '50px',
+            backdropFilter: 'blur(8px)',
           }}
-          aria-label="Previous gallery slide"
+          aria-label="Previous slide"
         >
           {'<'}
         </button>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          {galleryItems.map((item, index) => {
-            const isActive = index === currentSlide;
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px 20px',
+            background: 'rgba(20, 23, 25, 0.6)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: '50px',
+            border: '1px solid ' + colors.line,
+            minHeight: '46px',
+          }}
+        >
+          {galleryItems.map((_, index) => {
+            const isActive = currentSlide === index;
             return (
               <button
-                key={item.id}
+                key={index}
                 onClick={() => onSelectSlide(index)}
                 style={{
-                  width: isActive ? '36px' : '12px',
-                  height: '12px',
+                  width: isActive ? '32px' : '10px',
+                  height: '10px',
                   borderRadius: '50px',
                   background: isActive
-                    ? `linear-gradient(90deg, ${colors.accent}, ${colors.accentLight})`
-                    : 'rgba(255,255,255,0.3)',
-                  border: 'none',
+                    ? 'linear-gradient(90deg, ' + colors.accent + ', ' + colors.accentLight + ')'
+                    : 'rgba(39, 44, 49, 0.8)',
+                  border: isActive ? 'none' : '1px solid ' + colors.line,
                   cursor: 'pointer',
-                  transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                  boxShadow: isActive ? `0 0 16px ${colors.accent}40` : 'none',
+                  transition: 'all 0.4s',
+                  boxShadow: isActive ? '0 0 16px ' + colors.accent + '60' : 'none',
+                  transform: isActive ? 'scale(1.1)' : 'scale(1)',
                 }}
-                aria-label={`View gallery item ${index + 1}`}
+                aria-label={'Go to slide ' + (index + 1)}
               />
             );
           })}
         </div>
         <button
           onClick={onNext}
-          className="gallery-cta"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -312,7 +302,7 @@ export default function GallerySection({
             minWidth: '60px',
             height: '46px',
             padding: '0 20px',
-            border: `1px solid ${colors.line}`,
+            border: '1px solid ' + colors.line,
             background: 'rgba(20, 23, 25, 0.6)',
             color: colors.accent,
             fontFamily: 'Raleway, sans-serif',
@@ -321,12 +311,15 @@ export default function GallerySection({
             cursor: 'pointer',
             transition: 'all 0.4s',
             borderRadius: '50px',
+            backdropFilter: 'blur(8px)',
           }}
-          aria-label="Next gallery slide"
+          aria-label="Next slide"
         >
           {'>'}
         </button>
       </div>
+      </div>
     </SectionReveal>
   );
 }
+

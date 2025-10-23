@@ -7,6 +7,7 @@ import LoadingScreen from './common/LoadingScreen';
 import MotionToggle from './common/MotionToggle';
 import ProgressBar from './common/ProgressBar';
 import Footer from './layout/Footer';
+import useSectionParallax from '../hooks/useSectionParallax';
 import Header from './layout/Header';
 import OurStory from './sections/OurStory';
 import GallerySection from './sections/GallerySection';
@@ -29,9 +30,12 @@ export default function MowvExperience() {
   const [galleryTitleGlitch, setGalleryTitleGlitch] = useState(false);
   const [currentMorphIndex, setCurrentMorphIndex] = useState(0);
 
+  const galleryRef = useRef(null);
   const autoplayRef = useRef(null);
   const resumeTimeoutRef = useRef(null);
   const loadingTimeoutRef = useRef(null);
+
+  useSectionParallax({ enabled: motionEnabled && !isMobile });
 
   useEffect(() => {
     let progress = 0;
@@ -226,7 +230,8 @@ export default function MowvExperience() {
         minHeight: '100vh',
         position: 'relative',
       }}
-    >      <ProgressBar progress={scrollProgress} colors={colors} />
+    >
+      <ProgressBar progress={scrollProgress} colors={colors} />
       <Header colors={colors} isMobile={isMobile} />
       <main
         style={{
@@ -259,6 +264,7 @@ export default function MowvExperience() {
           morphWords={MORPH_WORDS}
           currentMorphIndex={currentMorphIndex}
           isTitleGlitch={galleryTitleGlitch}
+          galleryRef={galleryRef}
           onHoverStart={handleMouseEnterGallery}
           onHoverEnd={handleMouseLeaveGallery}
           motionEnabled={motionEnabled}
@@ -270,19 +276,3 @@ export default function MowvExperience() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
