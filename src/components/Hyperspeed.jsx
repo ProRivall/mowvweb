@@ -30,6 +30,7 @@ const BASE_OPTIONS = {
   carWidthPercentage: [0.3, 0.5],
   carShiftX: [-0.2, 0.2],
   carFloorSeparation: [0.05, 1],
+  maxPixelRatio: 1.5,
   colors: {
     roadColor: 0x080808,
     islandColor: 0x0a0a0a,
@@ -776,8 +777,8 @@ function Hyperspeed({ effectOptions }) {
         }
 
         this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true })
+        this.updatePixelRatio()
         this.renderer.setSize(containerEl.offsetWidth, containerEl.offsetHeight, false)
-        this.renderer.setPixelRatio(window.devicePixelRatio)
         this.composer = new EffectComposer(this.renderer)
         containerEl.appendChild(this.renderer.domElement)
 
@@ -830,6 +831,7 @@ function Hyperspeed({ effectOptions }) {
         this.tick = this.tick.bind(this)
         this.init = this.init.bind(this)
         this.setSize = this.setSize.bind(this)
+        this.updatePixelRatio = this.updatePixelRatio.bind(this)
         this.onMouseDown = this.onMouseDown.bind(this)
         this.onMouseUp = this.onMouseUp.bind(this)
         this.onTouchStart = this.onTouchStart.bind(this)
@@ -843,6 +845,7 @@ function Hyperspeed({ effectOptions }) {
       onWindowResize() {
         const width = this.container.offsetWidth
         const height = this.container.offsetHeight
+        this.updatePixelRatio()
         this.renderer.setSize(width, height)
         this.camera.aspect = width / height
         this.camera.updateProjectionMatrix()
@@ -1035,11 +1038,20 @@ function Hyperspeed({ effectOptions }) {
         this.composer.setSize(width, height, updateStyles)
       }
 
+      updatePixelRatio() {
+        const deviceRatio = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
+        const maxRatio = this.options.maxPixelRatio ?? 1.5
+        const clampedRatio = Math.min(deviceRatio, maxRatio)
+        this.renderer.setPixelRatio(clampedRatio)
+        return clampedRatio
+      }
+
       tick() {
         if (this.disposed) {
           return
         }
         if (resizeRendererToDisplaySize(this.renderer, this.setSize)) {
+          this.updatePixelRatio()
           const canvas = this.renderer.domElement
           this.camera.aspect = canvas.clientWidth / canvas.clientHeight
           this.camera.updateProjectionMatrix()

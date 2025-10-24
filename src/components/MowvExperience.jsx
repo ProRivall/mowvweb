@@ -8,6 +8,7 @@ import MotionToggle from './common/MotionToggle';
 import ProgressBar from './common/ProgressBar';
 import Footer from './layout/Footer';
 import useSectionParallax from '../hooks/useSectionParallax';
+import useSmoothScroll from '../hooks/useSmoothScroll';
 import Header from './layout/Header';
 import OurStory from './sections/OurStory';
 import GallerySection from './sections/GallerySection';
@@ -32,6 +33,8 @@ export default function MowvExperience() {
   const [heroVisible, setHeroVisible] = useState({});
   const [currentStory, setCurrentStory] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [hasFinePointer, setHasFinePointer] = useState(true);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(true);
 
   const [galleryTitleGlitch, setGalleryTitleGlitch] = useState(false);
   const [currentMorphIndex, setCurrentMorphIndex] = useState(0);
@@ -42,6 +45,45 @@ export default function MowvExperience() {
   const loadingTimeoutRef = useRef(null);
 
   useSectionParallax({ enabled: motionEnabled && !isMobile });
+  useSmoothScroll({ enabled: motionEnabled && hasFinePointer && !isMobile });
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return undefined;
+    }
+
+    const pointerQuery = window.matchMedia('(pointer: fine)');
+    const updatePointer = (event) => setHasFinePointer(event.matches);
+    setHasFinePointer(pointerQuery.matches);
+    if (typeof pointerQuery.addEventListener === 'function') {
+      pointerQuery.addEventListener('change', updatePointer);
+      return () => pointerQuery.removeEventListener('change', updatePointer);
+    }
+    if (typeof pointerQuery.addListener === 'function') {
+      pointerQuery.addListener(updatePointer);
+      return () => pointerQuery.removeListener(updatePointer);
+    }
+    return undefined;
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return undefined;
+    }
+
+    const handleVisibilityChange = () => {
+      const isVisible = document.visibilityState !== 'hidden';
+      if (!isVisible && resumeTimeoutRef.current) {
+        clearTimeout(resumeTimeoutRef.current);
+        resumeTimeoutRef.current = null;
+      }
+      setIsDocumentVisible(isVisible);
+    };
+
+    handleVisibilityChange();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   useEffect(() => {
     let progress = 0;
@@ -82,6 +124,10 @@ export default function MowvExperience() {
   }, []);
 
   useEffect(() => {
+    if (!hasFinePointer || isMobile) {
+      return () => {};
+    }
+
     const handleMouseMove = (event) => {
       setMousePosition({
         x: (event.clientX / window.innerWidth - 0.5) * 2,
@@ -91,7 +137,7 @@ export default function MowvExperience() {
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [hasFinePointer, isMobile]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -118,32 +164,36 @@ export default function MowvExperience() {
   useEffect(() => {
     if (autoplayRef.current) {
       clearInterval(autoplayRef.current);
+      autoplayRef.current = null;
     }
 
-    if (isAutoPlaying && motionEnabled) {
-      autoplayRef.current = setInterval(() => {
+    if (isAutoPlaying && motionEnabled && isDocumentVisible) {
+      const intervalDuration = isMobile ? 7000 : 4000;
+      autoplayRef.current = window.setInterval(() => {
         setCurrentSlide((prev) => (prev + 1) % galleryItems.length);
-      }, 4000);
+      }, intervalDuration);
     }
 
     return () => {
       if (autoplayRef.current) {
         clearInterval(autoplayRef.current);
+        autoplayRef.current = null;
       }
     };
-  }, [isAutoPlaying, motionEnabled]);
+  }, [isAutoPlaying, isDocumentVisible, isMobile, motionEnabled]);
 
   useEffect(() => {
-    if (!motionEnabled) {
+    if (!motionEnabled || !isDocumentVisible) {
       return () => {};
     }
 
-    const storyInterval = setInterval(() => {
+    const storyIntervalDuration = isMobile ? 9000 : 6000;
+    const storyInterval = window.setInterval(() => {
       setCurrentStory((prev) => (prev + 1) % streetStories.length);
-    }, 6000);
+    }, storyIntervalDuration);
 
     return () => clearInterval(storyInterval);
-  }, [motionEnabled]);
+  }, [isDocumentVisible, isMobile, motionEnabled]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -163,22 +213,28 @@ export default function MowvExperience() {
     () => () => {
       if (resumeTimeoutRef.current) {
         clearTimeout(resumeTimeoutRef.current);
+        resumeTimeoutRef.current = null;
       }
       if (autoplayRef.current) {
         clearInterval(autoplayRef.current);
+        autoplayRef.current = null;
       }
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
       }
     },
     [],
   );
 
-  const scheduleAutoPlayResume = (delay = 5000) => {
+  const scheduleAutoPlayResume = (delay = isMobile ? 7000 : 5000) => {
     if (resumeTimeoutRef.current) {
       clearTimeout(resumeTimeoutRef.current);
     }
-    resumeTimeoutRef.current = setTimeout(() => setIsAutoPlaying(true), delay);
+    resumeTimeoutRef.current = window.setTimeout(() => {
+      resumeTimeoutRef.current = null;
+      setIsAutoPlaying(true);
+    }, delay);
   };
 
   const nextSlide = () => {
@@ -250,6 +306,8 @@ export default function MowvExperience() {
           heroVisible={heroVisible}
           mousePosition={mousePosition}
           headerOffset={headerOffset}
+          motionEnabled={motionEnabled}
+          isMobile={isMobile}
         />
         <OurStory colors={colors} isMobile={isMobile} motionEnabled={motionEnabled} />
         <StoriesSection

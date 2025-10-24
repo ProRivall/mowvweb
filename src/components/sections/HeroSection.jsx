@@ -1,6 +1,33 @@
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import Hyperspeed from '../Hyperspeed.jsx';
 import './HeroSection.css';
+
+const HERO_BACKDROP = {
+  alt: 'Abstract neon cityscape with motion blur',
+  width: 1600,
+  height: 900,
+  sources: [
+    {
+      media: '(min-width: 1024px)',
+      sizes: '100vw',
+      srcSet:
+        'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=70&w=1600 1600w,' +
+        ' https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=65&w=2048 2048w',
+    },
+    {
+      media: '(min-width: 768px)',
+      sizes: '100vw',
+      srcSet:
+        'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=70&w=1200 1200w,' +
+        ' https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=65&w=1400 1400w',
+    },
+  ],
+  mobileSrc:
+    'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=60&w=800',
+  placeholder:
+    'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=20&w=32&blur=50',
+};
 
 const titleVariants = {
   hidden: { opacity: 0, y: 60, scale: 0.95, filter: 'blur(12px)' },
@@ -36,8 +63,52 @@ const MotionH1 = motion.h1;
 const MotionP = motion.p;
 const MotionDiv = motion.div;
 
-export default function HeroSection({ colors, heroVisible, mousePosition, headerOffset = 0 }) {
+const hasMatchMedia = typeof window !== 'undefined' && typeof window.matchMedia === 'function';
+
+const useMediaMatch = (query, defaultValue) => {
+  const [matches, setMatches] = useState(defaultValue);
+
+  useEffect(() => {
+    if (!hasMatchMedia) {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia(query);
+    const update = (event) => setMatches(event.matches);
+    setMatches(mediaQuery.matches);
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', update);
+      return () => mediaQuery.removeEventListener('change', update);
+    }
+    if (typeof mediaQuery.addListener === 'function') {
+      mediaQuery.addListener(update);
+      return () => mediaQuery.removeListener(update);
+    }
+    return undefined;
+  }, [query]);
+
+  return matches;
+};
+
+export default function HeroSection({
+  colors,
+  heroVisible,
+  mousePosition,
+  headerOffset = 0,
+  motionEnabled = true,
+  isMobile = false,
+}) {
+  const hasFinePointer = useMediaMatch('(pointer: fine)', !isMobile);
+  const prefersReducedMotion = useMediaMatch('(prefers-reduced-motion: reduce)', false);
+
+  const shouldRenderHyperspeed = useMemo(
+    () => motionEnabled && hasFinePointer && !prefersReducedMotion && !isMobile,
+    [hasFinePointer, isMobile, motionEnabled, prefersReducedMotion],
+  );
+
+  const allowContentParallax = shouldRenderHyperspeed && hasFinePointer && !prefersReducedMotion;
   const contentTransform = `translate(${mousePosition.x * -2}px, ${mousePosition.y * -2}px)`;
+
   const sectionStyle = headerOffset
     ? {
         color: colors.text,
@@ -56,9 +127,50 @@ export default function HeroSection({ colors, heroVisible, mousePosition, header
       data-parallax-depth="1.1"
     >
       <div className="hero-background" data-parallax-content data-parallax-depth="0.55">
-        <Hyperspeed />
-        <div className="hero-scanlines" />
-        <div className="hero-vignette" />
+        {shouldRenderHyperspeed ? (
+          <>
+            <Hyperspeed />
+            <div className="hero-scanlines" />
+            <div className="hero-vignette" />
+          </>
+        ) : (
+          <div className="hero-fallback">
+            <div
+              className="hero-fallback__backdrop"
+              style={{
+                backgroundImage: HERO_BACKDROP.placeholder
+                  ? `url(${HERO_BACKDROP.placeholder})`
+                  : undefined,
+              }}
+            />
+            <picture>
+              {HERO_BACKDROP.sources.map((source) => (
+                <source
+                  key={source.media}
+                  media={source.media}
+                  srcSet={source.srcSet}
+                  sizes={source.sizes}
+                />
+              ))}
+              <img
+                src={HERO_BACKDROP.mobileSrc}
+                alt={HERO_BACKDROP.alt}
+                width={HERO_BACKDROP.width}
+                height={HERO_BACKDROP.height}
+                loading="eager"
+                decoding="async"
+                sizes="100vw"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  filter: 'brightness(0.35) contrast(1.08)',
+                }}
+              />
+            </picture>
+            <div className="hero-fallback__overlay" />
+          </div>
+        )}
       </div>
 
       <div
@@ -66,7 +178,7 @@ export default function HeroSection({ colors, heroVisible, mousePosition, header
         data-parallax-content
         data-parallax-depth="1.25"
         style={{
-          transform: contentTransform,
+          transform: allowContentParallax ? contentTransform : undefined,
           paddingTop: headerOffset ? `${Math.round(headerOffset * 0.25)}px` : undefined,
         }}
       >

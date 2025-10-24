@@ -3,8 +3,25 @@ import Lenis from "@studio-freight/lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-export default function useSmoothScroll() {
+const hasMatchMedia = typeof window !== "undefined" && typeof window.matchMedia === "function";
+
+export default function useSmoothScroll({ enabled = true } = {}) {
   useEffect(() => {
+    if (!enabled || typeof window === "undefined") {
+      return undefined;
+    }
+
+    const hasFinePointer = hasMatchMedia
+      ? window.matchMedia("(pointer: fine)").matches
+      : true;
+    const prefersReducedMotion = hasMatchMedia
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false;
+
+    if (!hasFinePointer || prefersReducedMotion) {
+      return undefined;
+    }
+
     gsap.registerPlugin(ScrollTrigger);
 
     const lenis = new Lenis({
@@ -15,14 +32,16 @@ export default function useSmoothScroll() {
       touchMultiplier: 1.5,
     });
 
+    let frameId = null;
     const raf = (time) => {
       lenis.raf(time);
       ScrollTrigger.update();
-      requestAnimationFrame(raf);
+      frameId = requestAnimationFrame(raf);
     };
-    requestAnimationFrame(raf);
+    frameId = requestAnimationFrame(raf);
 
-    lenis.on("scroll", ScrollTrigger.update);
+    const handleLenisScroll = () => ScrollTrigger.update();
+    lenis.on("scroll", handleLenisScroll);
 
     ScrollTrigger.defaults({
       fastScrollEnd: true,
@@ -43,9 +62,12 @@ export default function useSmoothScroll() {
     return () => {
       window.removeEventListener("orientationchange", onResize);
       window.removeEventListener("resize", onResize);
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId);
+      }
+      lenis.off("scroll", handleLenisScroll);
       lenis.destroy();
-      // Kill triggers only (NU timelines)
       gsap.utils.toArray(ScrollTrigger.getAll()).forEach((t) => t.kill(false));
     };
-  }, []);
+  }, [enabled]);
 }

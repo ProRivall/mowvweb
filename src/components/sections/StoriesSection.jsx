@@ -17,8 +17,30 @@ const sectionVariants = {
 
 const MotionSection = motion.section;
 
+const DEFAULT_STORY_ALT = 'Street story background';
+
+const resolveStoryImage = (image) => {
+  if (!image) {
+    return { src: '', alt: DEFAULT_STORY_ALT };
+  }
+
+  if (typeof image === 'string') {
+    return { src: image, alt: DEFAULT_STORY_ALT };
+  }
+
+  return {
+    src: image.src ?? '',
+    srcSet: image.srcSet,
+    placeholder: image.placeholder,
+    alt: image.alt ?? DEFAULT_STORY_ALT,
+    width: image.width,
+    height: image.height,
+  };
+};
+
 export default function StoriesSection({ colors, stories, currentStory, onStoryChange }) {
   const story = stories[currentStory];
+  const resolvedImage = resolveStoryImage(story.image);
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, {
     amount: 0.3,
@@ -57,14 +79,54 @@ export default function StoriesSection({ colors, stories, currentStory, onStoryC
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: `url(${story.image})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'brightness(0.32) contrast(1.08)',
-          transition: 'all 1s ease',
+          overflow: 'hidden',
           zIndex: 0,
         }}
-      />
+      >
+        {resolvedImage.placeholder ? (
+          <div
+            style={{
+              position: 'absolute',
+              inset: '-12%',
+              backgroundImage: `url(${resolvedImage.placeholder})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              filter: 'blur(40px) saturate(1.2)',
+              transform: 'scale(1.05)',
+              opacity: 0.8,
+            }}
+          />
+        ) : null}
+        <picture
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'block',
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          {resolvedImage.srcSet ? <source srcSet={resolvedImage.srcSet} sizes="100vw" /> : null}
+          <img
+            src={resolvedImage.src}
+            alt={resolvedImage.alt}
+            width={resolvedImage.width ?? 1600}
+            height={resolvedImage.height ?? 900}
+            srcSet={resolvedImage.srcSet}
+            loading="lazy"
+            decoding="async"
+            sizes="100vw"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              filter: 'brightness(0.32) contrast(1.08)',
+              transition: 'filter 1s ease, transform 8s ease',
+              transform: 'scale(1.02)',
+            }}
+          />
+        </picture>
+      </div>
       <div
         data-parallax-content
         data-parallax-depth="0.55"
