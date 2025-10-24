@@ -377,6 +377,36 @@ export default function Header({ colors, isMobile }) {
           outline-offset: 4px;
         }
 
+        @media (pointer: coarse) {
+          .mobile-nav {
+            background: rgba(4, 6, 10, 0.94);
+            padding: clamp(32px, 8vw, 48px) clamp(20px, 6vw, 36px);
+          }
+
+          .mobile-nav__inner {
+            gap: clamp(14px, 5vw, 22px);
+          }
+
+          .mobile-nav a {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(8, 10, 14, 0.85);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+          }
+
+          .mobile-nav__close {
+            padding: 10px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(8, 10, 14, 0.85);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+          }
+        }
+
         @media (max-width: 768px) {
           .header-content {
             gap: clamp(16px, 4vw, 28px);

@@ -57,8 +57,12 @@ const PROOF_POINTS = [
 ];
 
 const STORY_MEDIA = {
-  image: 'https://images.unsplash.com/photo-1543076447-215ad9ba6923?q=80&w=2000&auto=format&fit=crop',
   alt: 'Motion blurred runner cutting through neon city lights at night',
+  src: 'https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&q=75&w=1200',
+  srcSet:
+    'https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&q=75&w=480 480w,' +
+    ' https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&q=75&w=800 800w,' +
+    ' https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&q=75&w=1200 1200w',
 };
 
 export default function OurStory({ colors, isMobile, motionEnabled }: OurStoryProps) {
@@ -97,7 +101,10 @@ export default function OurStory({ colors, isMobile, motionEnabled }: OurStoryPr
 
       <div className="our-story__split">
         <div ref={mediaRef} className="our-story__split-media" style={{ borderColor: colors.line }}>
-          <img src={STORY_MEDIA.image} alt={STORY_MEDIA.alt} loading="lazy" />
+          <picture style={{ width: '100%', height: '100%' }}>
+            <source srcSet={STORY_MEDIA.srcSet} sizes="(max-width: 768px) 90vw, 640px" />
+            <img src={STORY_MEDIA.src} alt={STORY_MEDIA.alt} loading="lazy" />
+          </picture>
           <div className="our-story__split-media-overlay" />
           <div className="our-story__split-media-noise" aria-hidden />
           <span className="our-story__split-media-tag">/// live route : central grid</span>

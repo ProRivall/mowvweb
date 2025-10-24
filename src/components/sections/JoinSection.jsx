@@ -23,7 +23,7 @@ export default function JoinSection({ colors }) {
           position: 'absolute',
           inset: 0,
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1558882268-a5c7-4f02-a28e-6c4d0d48643e?q=80&w=2000&auto=format&fit=crop')",
+            "url('https://images.unsplash.com/photo-1558882268-a5c7-4f02-a28e-6c4d0d48643e?q=75&w=1400&auto=format&fit=crop')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           opacity: 0.03,

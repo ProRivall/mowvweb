@@ -18,7 +18,13 @@ import StoriesSection from './sections/StoriesSection';
 export default function MowvExperience() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [motionEnabled, setMotionEnabled] = useState(true);
+  const [motionEnabled, setMotionEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const prefersCoarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      return !prefersCoarse;
+    }
+    return true;
+  });
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);

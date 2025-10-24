@@ -29,6 +29,34 @@ const useDarkMode = () => {
   return isDark;
 };
 
+const useCoarsePointer = () => {
+  const [isCoarse, setIsCoarse] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia('(pointer: coarse)');
+    const update = () => setIsCoarse(mediaQuery.matches);
+    update();
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', update);
+      return () => mediaQuery.removeEventListener('change', update);
+    }
+
+    if (typeof mediaQuery.addListener === 'function') {
+      mediaQuery.addListener(update);
+      return () => mediaQuery.removeListener(update);
+    }
+
+    return () => {};
+  }, []);
+
+  return isCoarse;
+};
+
 export default function GlassSurface({
   children,
   width = 200,
@@ -66,6 +94,7 @@ export default function GlassSurface({
   const gaussianBlurRef = useRef(null);
 
   const isDarkMode = useDarkMode();
+  const isCoarsePointer = useCoarsePointer();
 
   const generateDisplacementMap = () => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -198,6 +227,15 @@ export default function GlassSurface({
   const wantsTransparent = backgroundOpacity <= 0.001 && overlayOpacity <= 0.001;
 
   const getContainerStyles = () => {
+    if (isCoarsePointer) {
+      return {
+        ...baseStyles,
+        background: isDarkMode ? 'rgba(8, 10, 14, 0.9)' : 'rgba(18, 20, 24, 0.9)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        boxShadow: '0 16px 32px rgba(0, 0, 0, 0.35)',
+      };
+    }
+
     if (svgSupported) {
       return {
         ...baseStyles,
@@ -339,10 +377,11 @@ export default function GlassSurface({
         style={{
           borderRadius: 'inherit',
           mixBlendMode: 'soft-light',
-          opacity: overlayOpacity,
+          opacity: isCoarsePointer ? Math.min(overlayOpacity, 0.18) : overlayOpacity,
           background: isDarkMode
             ? 'linear-gradient(142deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 100%)'
             : 'linear-gradient(142deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.12) 100%)',
+          filter: isCoarsePointer ? 'none' : undefined,
         }}
       />
 
