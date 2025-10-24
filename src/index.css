@@ -50,10 +50,6 @@ body.no-scroll {
   overflow: hidden;
 }
 
-main {
-  overflow: hidden;
-}
-
 button {
   font-family: inherit;
 }

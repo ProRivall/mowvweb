@@ -54,6 +54,17 @@ export function useSwipeCarousel(
   }, [onRelease]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const isCoarsePointer =
+      window.matchMedia?.('(pointer: coarse)').matches ?? 'ontouchstart' in window;
+
+    if (!isCoarsePointer) {
+      return undefined;
+    }
+
     gsap.registerPlugin(Draggable);
     const element = resolveElement(target);
     if (!element) {
@@ -91,7 +102,7 @@ export function useSwipeCarousel(
         const absX = Math.abs(deltaX);
         const absY = Math.abs(deltaY);
 
-        if (absX >= threshold && absX > absY * 1.2) {
+        if (absX >= threshold && absX > absY * 1.5) {
           if (deltaX < 0) {
             leftHandlerRef.current?.();
           } else {
